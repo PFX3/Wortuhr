@@ -1,7 +1,7 @@
 #include "Uhrtype.hpp"
 
 /*
- * Layout Front
+ * Layout Front https://www.mikrocontroller.net/articles/Word_Clock
  *
  * E S K I S T R F Ü N F
  * Z E H N Z W A N Z I G
@@ -11,8 +11,8 @@
  * Z W E I N S I E B E N
  * K D R E I R H F Ü N F
  * E L F N E U N V I E R
- * N A C H T Z E H N B X
- * U S E C H S F U H R Y
+ * W A C H T Z E H N R S
+ * B S E C H S F M U H R
  */
 
 #define LED_LAYOUT_REVERSE 0
@@ -191,9 +191,9 @@ public:
             //------------------------------------------------------------------------------
 
         case uhr:
-            Letter_set(LED_MAP(100));
             Letter_set(LED_MAP(101));
             Letter_set(LED_MAP(102));
+            Letter_set(LED_MAP(103));
             break;
 
             //------------------------------------------------------------------------------
