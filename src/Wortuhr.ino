@@ -399,14 +399,13 @@ void setup() {
     //-------------------------------------
     // MQTT
     //-------------------------------------
-
-    if (G.MQTT_State == 1) {
+    
+    if (G.MQTT_Server[0] != 0 && G.MQTT_Port > 0) {
+        Serial.println("set mqtt server");
         mqttClient.setServer(G.MQTT_Server, G.MQTT_Port);
         mqttClient.setCallback(MQTT_callback);
-        mqttClient.connect(G.MQTT_ClientId, G.MQTT_User, G.MQTT_Pass);
-        mqttClient.subscribe(G.MQTT_Topic);
     }
-
+    
     //-------------------------------------
     // Start Websocket
     //-------------------------------------
@@ -492,11 +491,23 @@ void loop() {
     //------------------------------------------------
     // MQTT
     //------------------------------------------------
-    if (G.MQTT_State == 1 && WiFi.status() == WL_CONNECTED) {
-        if (!mqttClient.connected()) {
-            MQTT_reconnect();
+
+    if ( G.MQTT_State == 1 && WiFi.status() != WL_CONNECTED) {
+        G.MQTT_State = 0;
+    }
+
+    if (G.MQTT_State == 1 && !mqttClient.connected()) {
+        if (!MQTT_reconnect()) { 
+            MQTT_disconnect();
         }
-        mqttClient.loop();
+    }
+
+    if (mqttClient.connected() && G.MQTT_State == 0 ) {
+        MQTT_disconnect();
+    }
+
+    if (mqttClient.connected()){
+         mqttClient.loop();
     }
 
     //------------------------------------------------
@@ -758,12 +769,13 @@ void loop() {
 
     case COMMAND_SET_MQTT: // MQTT Einstellungen
     {
-        if (!mqttClient.connected() && G.MQTT_State) {
-            mqttClient.connect(G.MQTT_ClientId, G.MQTT_User, G.MQTT_Pass);
-            MQTT_reconnect();
-        }
         eeprom_write();
-        G.conf = COMMAND_IDLE;
+        if (G.prog_init == 1) {
+            G.prog_init = 0;
+            G.conf = COMMAND_RESET;
+        } else {
+            G.conf = COMMAND_IDLE;
+        }
         break;
     }
 
@@ -830,7 +842,6 @@ void loop() {
     }
 
     switch (G.prog) {
-
     case COMMAND_MODE_SECONDS: // Sekundenanzeige
     {
         if (G.prog_init == 1) {

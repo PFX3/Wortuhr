@@ -3,6 +3,7 @@
 #include "version.gen.h"
 
 #define MAX_ARRAY_SIZE 291
+#define MQTT_MAX_RECONNECT_TRIES 3
 
 enum uhrzeit_t {
     ESIST = 0,
@@ -109,6 +110,10 @@ uint16_t wwetter_18;
 uint16_t wwetter_24;
 uint16_t wstunde;
 uint16_t wetterswitch;
+
+//MQTT
+int mqtt_reconnect_retries = 0;
+long mqtt_last_publish = 0;
 
 // LDR
 uint8_t ldrVal = 100;
