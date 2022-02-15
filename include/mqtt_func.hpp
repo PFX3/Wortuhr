@@ -109,6 +109,10 @@ bool MQTT_reconnect() {
         // Attempt to connect
         sprintf(str, "%s/status", G.MQTT_Topic);
         if (mqttClient.connect(G.MQTT_ClientId, G.MQTT_User, G.MQTT_Pass, str, 2, true, "OFFLINE", true)) {
+            if (!mqttClient.connected()) {
+                delay(5000);
+                return false;
+            }
             Serial.println("MQTT connected!");
              // Once connected, publish an announcement...
             mqttClient.publish(str,"ONLINE");
@@ -124,7 +128,7 @@ bool MQTT_reconnect() {
             Serial.print(mqttClient.state());
             Serial.println(" try again in 5 seconds");
             // Wait 5 seconds before retrying
-            MQTT_disconnect();
+            //MQTT_disconnect();
             delay(5000);
         }
         if (mqtt_reconnect_retries >= MQTT_MAX_RECONNECT_TRIES) {
