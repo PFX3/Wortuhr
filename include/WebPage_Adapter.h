@@ -401,8 +401,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
             payloadTextHandling(
                 payload,G.MQTT_Server,
                 sizeof(G.MQTT_Server) / sizeof(G.MQTT_Server[0]), 11);
- 
-            if (strcmp(str, G.MQTT_Server) != 0) G.prog_init = 1; //Reset
+
+            if (strcmp(str, G.MQTT_Server) == 0) {
+                G.prog_init = 0;
+            } else {
+                G.prog_init = 1; 
+            }
 
             payloadTextHandling(
                 payload, G.MQTT_User,
