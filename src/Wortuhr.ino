@@ -404,6 +404,10 @@ void setup() {
         Serial.println("set mqtt server");
         mqttClient.setServer(G.MQTT_Server, G.MQTT_Port);
         mqttClient.setCallback(MQTT_callback);
+
+        if (G.MQTT_Topic[0] == 0) {
+            strcpy(G.MQTT_Topic, G.MQTT_ClientId);
+        }
     }
     
     //-------------------------------------
@@ -492,18 +496,22 @@ void loop() {
     // MQTT
     //------------------------------------------------
 
+    if ( G.MQTT_State == 0) mqtt_reconnect_retries = 0;
+
     if ( G.MQTT_State == 1 && WiFi.status() != WL_CONNECTED) {
         G.MQTT_State = 0;
     }
 
     if (G.MQTT_State == 1 && !mqttClient.connected()) {
-        if (!MQTT_reconnect()) { 
-            MQTT_disconnect();
+        if (!MQTT_reconnect(G.MQTT_ClientId, G.MQTT_User, G.MQTT_Pass, G.MQTT_Topic)) { 
+            //MQTT_disconnect();
+            G.MQTT_State = 0;
         }
     }
 
     if (mqttClient.connected() && G.MQTT_State == 0 ) {
         MQTT_disconnect();
+       // G.MQTT_State = 0;
     }
 
     if (mqttClient.connected()){
@@ -772,7 +780,9 @@ void loop() {
         eeprom_write();
         if (G.prog_init == 1) {
             G.prog_init = 0;
-            G.conf = COMMAND_RESET;
+            MQTT_disconnect();
+            mqttClient.setServer(G.MQTT_Server, G.MQTT_Port);
+            Serial.println("set new mqtt server");
         } else {
             G.conf = COMMAND_IDLE;
         }

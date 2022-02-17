@@ -90,51 +90,60 @@ void MQTT_disconnect() {
     mqttClient.unsubscribe(str);
     mqttClient.disconnect();
     Serial.println("MQTT diconnected");
-    //mqtt_reconnect_retries = 0;
-    G.MQTT_State = 0;
 }
 
-bool MQTT_reconnect() {
+bool MQTT_reconnect (const char *id, const char *user, const char *pass,const char* willTopic) {
 
-    //if (!mqttClient.connected() || mqttServer[0] == 0 || !WLED_CONNECTED) return false;
+    //if (!mqttClient.connected()) return false;
+
+    if (millis() - mqtt_last_publish < 5000) return true;
+
     // Loop until we're reconnected
-    while (!mqttClient.connected() && mqtt_reconnect_retries < MQTT_MAX_RECONNECT_TRIES) {
+    //while (!mqttClient.connected() && mqtt_reconnect_retries < MQTT_MAX_RECONNECT_TRIES) {
+    if (mqtt_reconnect_retries < MQTT_MAX_RECONNECT_TRIES) {
         mqtt_reconnect_retries++;
-        Serial.printf("Attempting MQTT connection %d / %d ...\n", mqtt_reconnect_retries, MQTT_MAX_RECONNECT_TRIES);
+        Serial.printf("Attempting MQTT connection %d / %d ...", mqtt_reconnect_retries, MQTT_MAX_RECONNECT_TRIES);
         
-        if (G.MQTT_Topic[0] == 0) {
-            strcpy(G.MQTT_Topic, G.MQTT_ClientId);
-        }
-        
+        //MQTT_disconnect();
+        mqtt_last_publish = millis();
+
         // Attempt to connect
-        sprintf(str, "%s/status", G.MQTT_Topic);
-        if (mqttClient.connect(G.MQTT_ClientId, G.MQTT_User, G.MQTT_Pass, str, 2, true, "OFFLINE", true)) {
-            if (!mqttClient.connected()) {
-                delay(5000);
-                return false;
-            }
-            Serial.println("MQTT connected!");
+        sprintf(str, "%s/status", willTopic);
+        if (mqttClient.connect(id, user, pass, str, 0, true, "OFFLINE")) {
+            //if (!mqttClient.connected()) {
+                //delay(5000);
+            //    return false;
+            //}
+            Serial.println("connected!");
              // Once connected, publish an announcement...
+            sprintf(str, "%s/status", willTopic);
             mqttClient.publish(str,"ONLINE");
-            //mqttClient.publish("Wortuhr/cmnd","ready");
-            mqtt_last_publish = millis();
+  
             // ... and resubscribe
-            sprintf(str, "%s/cmnd", G.MQTT_Topic);
+            sprintf(str, "%s/cmnd", willTopic);
             mqttClient.subscribe(str);
             mqtt_reconnect_retries = 0;
-            return true;
+            //return true;
         } else {
+
             Serial.print("failed, rc=");
             Serial.print(mqttClient.state());
+            
+            if (mqtt_reconnect_retries == MQTT_MAX_RECONNECT_TRIES) {
+                Serial.printf(", giving up after %d tries ...\n", mqtt_reconnect_retries);
+             return false;
+            }  
+
             Serial.println(" try again in 5 seconds");
+            mqtt_last_publish = millis();
             // Wait 5 seconds before retrying
             //MQTT_disconnect();
-            delay(5000);
+            //delay(5000);
         }
-        if (mqtt_reconnect_retries >= MQTT_MAX_RECONNECT_TRIES) {
-            Serial.printf("MQTT connection failed, giving up after %d tries ...\n", mqtt_reconnect_retries);
-            return false; 
-        }  
-    }
-    return false; 
+
+    } 
+    
+   
+
+    return true; 
 }
