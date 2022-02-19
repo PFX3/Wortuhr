@@ -55,6 +55,28 @@ void MQTT_callback(char *topic, byte *payload, unsigned int length) {
         Serial.print(str);
     }
 
+    JsonArray array = doc["color"].as<JsonArray>();
+    uint8_t i = 0;
+    for(JsonVariant v : array) {
+        G.rgb[Foreground][i]=v.as<uint8_t>();
+        G.rgb[Effect][i]=G.rgb[Foreground][i];
+        sprintf(str, "|color[%d]:%d", i, G.rgb[Foreground][i]);
+        Serial.print(str);
+        i++;
+        if (i >= sizeof(G.rgb[Foreground])) break;
+        parameters_changed = (G.prog == COMMAND_IDLE || COMMAND_MODE_WORD_CLOCK);
+    }
+    if (str[0]>0) {Serial.println("|");}
+
+    if (doc.containsKey("text")) 
+    {
+        strlcpy(G.ltext,doc["text"], sizeof(G.ltext)); 
+        sprintf(str, "|text:%s", G.ltext);
+        Serial.print(str);
+        G.prog = COMMAND_MODE_MARQUEE2;  G.prog_init = 1; G.geschw = 3;
+        return;
+    }
+
     strlcpy(str, doc["mode"] | "", 20);
     if (str[0] > 0) { 
         if (strstr("marquee", str))     G.prog = COMMAND_MODE_MARQUEE;      G.prog_init = 1;
@@ -68,19 +90,6 @@ void MQTT_callback(char *topic, byte *payload, unsigned int length) {
         Serial.print(G.prog);
     }        
        
-    JsonArray array = doc["color"].as<JsonArray>();
-    uint8_t i = 0;
-    for(JsonVariant v : array) {
-        G.rgb[Foreground][i]=v.as<uint8_t>();
-        G.rgb[Effect][i]=G.rgb[Foreground][i];
-        sprintf(str, "|color[%d]:%d", i, G.rgb[Foreground][i]);
-        Serial.print(str);
-        i++;
-        if (i >= sizeof(G.rgb[Foreground])) break;
-        parameters_changed = (G.prog == COMMAND_IDLE || COMMAND_MODE_WORD_CLOCK);
-    }
-    if (str[0]>0) {Serial.println("|");}
-    
     return;
 }
 

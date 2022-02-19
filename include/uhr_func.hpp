@@ -440,7 +440,7 @@ void shift_all_pixels_to_right() {
 
 //------------------------------------------------------------------------------
 
-static void laufschrift(const char *buf) {
+static bool laufschrift(const char *buf) {
     static uint8_t i = 0, ii = 0;
     static uint8_t offsetRow = 1;
     uint8_t fontIndex = buf[ii];
@@ -478,8 +478,10 @@ static void laufschrift(const char *buf) {
         ii++;
         if (ii > strlen(buf)) {
             ii = 0;
+            return true;
         }
     }
+    return false;
 }
 
 //------------------------------------------------------------------------------

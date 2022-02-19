@@ -880,6 +880,20 @@ void loop() {
         break;
     }
 
+    case COMMAND_MODE_MARQUEE2: // Laufschriftanzeige
+    {
+        if (G.prog_init == 1) {
+            G.prog_init = 0;
+            led_clear();
+            count_delay = (G.geschw + 1) * 20;
+        }
+        if (count_delay >= (G.geschw + 1u) * 20u) {
+            if (laufschrift(G.ltext))  G.prog = COMMAND_MODE_WORD_CLOCK;   parameters_changed = true;
+            count_delay = 0;
+        }
+        break;
+    }
+
     case COMMAND_MODE_RAINBOW: // Regenbogenanzeige
     {
         if (G.prog_init == 1) {
