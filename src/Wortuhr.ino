@@ -498,14 +498,12 @@ void loop() {
 
     if ( G.MQTT_State == 0) mqtt_reconnect_retries = 0;
 
-    if ( G.MQTT_State == 1 && WiFi.status() != WL_CONNECTED) {
-        G.MQTT_State = 0;
-    }
+    //if ( G.MQTT_State == 1 && WiFi.status() != WL_CONNECTED) G.MQTT_State = 0;
 
-    if (G.MQTT_State == 1 && !mqttClient.connected()) {
+    if (G.MQTT_State == 1 && WiFi.status() == WL_CONNECTED && !mqttClient.connected()) {
         if (!MQTT_reconnect(G.MQTT_ClientId, G.MQTT_User, G.MQTT_Pass, G.MQTT_Topic)) { 
             //MQTT_disconnect();
-            G.MQTT_State = 0;
+            //G.MQTT_State = 0;
         }
     }
 

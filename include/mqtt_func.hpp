@@ -48,13 +48,6 @@ void MQTT_callback(char *topic, byte *payload, unsigned int length) {
         return;
     }
 
-    if (doc.containsKey("brightness")) 
-    {
-        G.hell = doc["brightness"]; 
-        sprintf(str, "|brightness:%d", G.hell);
-        Serial.print(str);
-    }
-
     JsonArray array = doc["color"].as<JsonArray>();
     uint8_t i = 0;
     for(JsonVariant v : array) {
@@ -63,10 +56,30 @@ void MQTT_callback(char *topic, byte *payload, unsigned int length) {
         sprintf(str, "|color[%d]:%d", i, G.rgb[Foreground][i]);
         Serial.print(str);
         i++;
-        if (i >= sizeof(G.rgb[Foreground])) break;
+        if (i >= sizeof(G.rgb[Foreground])) {
+            Serial.print("|");
+            break;
+        }
+        parameters_changed = (G.prog == COMMAND_IDLE || COMMAND_MODE_WORD_CLOCK);
+        G.hell = 100;
+    }
+
+    if (doc.containsKey("brightness")) 
+    {
+        double percentage = doc["brightness"];
+        percentage = percentage / G.hell;
+        G.rgb[Foreground][0] = G.rgb[Foreground][0] * percentage;
+        G.rgb[Foreground][1] = G.rgb[Foreground][1] * percentage;
+        G.rgb[Foreground][2] = G.rgb[Foreground][2] * percentage;
+        G.rgb[Foreground][3] = G.rgb[Foreground][3] * percentage;
+        sprintf(str, "|brightness: %d.%02d/%d", (int)percentage, (int)(percentage*100)%100,G.hell);
+
+
+
+        Serial.print(str);
+        G.hell = doc["brightness"];
         parameters_changed = (G.prog == COMMAND_IDLE || COMMAND_MODE_WORD_CLOCK);
     }
-    if (str[0]>0) {Serial.println("|");}
 
     if (doc.containsKey("text")) 
     {
@@ -88,8 +101,9 @@ void MQTT_callback(char *topic, byte *payload, unsigned int length) {
                
         Serial.print("|mode:");
         Serial.print(G.prog);
+        
     }        
-       
+    Serial.println();   
     return;
 }
 
