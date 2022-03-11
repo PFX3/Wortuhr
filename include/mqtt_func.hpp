@@ -41,7 +41,7 @@ void MQTT_callback(char *topic, byte *payload, unsigned int length) {
     StaticJsonDocument<200> doc; //jsonBuffer
     DeserializationError error = deserializeJson(doc, msg);
 
-      // Test if parsing succeeds.
+    // Test if parsing succeeds.
     if (error) {
         Serial.print(F("deserializeJson() failed: "));
         Serial.println(error.c_str());
@@ -61,31 +61,23 @@ void MQTT_callback(char *topic, byte *payload, unsigned int length) {
             break;
         }
         parameters_changed = (G.prog == COMMAND_IDLE || COMMAND_MODE_WORD_CLOCK);
-        G.hell = 100;
     }
 
     if (doc.containsKey("brightness")) 
     {
-        double percentage = doc["brightness"];
-        percentage = percentage / G.hell;
-        G.rgb[Foreground][0] = G.rgb[Foreground][0] * percentage;
-        G.rgb[Foreground][1] = G.rgb[Foreground][1] * percentage;
-        G.rgb[Foreground][2] = G.rgb[Foreground][2] * percentage;
-        G.rgb[Foreground][3] = G.rgb[Foreground][3] * percentage;
-        sprintf(str, "|brightness: %d.%02d/%d", (int)percentage, (int)(percentage*100)%100,G.hell);
+    }
 
-
-
-        Serial.print(str);
-        G.hell = doc["brightness"];
-        parameters_changed = (G.prog == COMMAND_IDLE || COMMAND_MODE_WORD_CLOCK);
+    if (doc.containsKey("animation")) 
+    {
+        G.animType = doc["animation"];
+        G.prog = COMMAND_MODE_WORD_CLOCK; 
     }
 
     if (doc.containsKey("text")) 
     {
         strlcpy(G.ltext,doc["text"], sizeof(G.ltext)); 
         sprintf(str, "|text:%s", G.ltext);
-        Serial.print(str);
+        Serial.println(str);
         G.prog = COMMAND_MODE_MARQUEE2;  G.prog_init = 1; G.geschw = 3;
         return;
     }
